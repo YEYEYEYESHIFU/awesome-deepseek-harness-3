@@ -56,7 +56,7 @@
 
 [DeepSeek Harness](https://deepseek.com/harness/)（简称 DSH 或 `dsh`）是 DeepSeek AI 开源的 Agent Harness 项目。它基于 [Cordis](https://github.com/cordiverse/cordis)，采用 **Everything is a Plugin（一切皆插件）** 的架构：模型适配器、工具、会话日志、界面和 Agent Loop 都可以通过插件树组合与替换。
 
-当前核验到的官方 GitHub 开发者预览版为 [`0.1.2-alpha.1`](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.2-alpha.1)，而 npm `latest` 仍为 `0.1.1-rc.2`。该 Alpha 增加子代理模型配置、ACP 自动化与多模态 / 持久终端修复；DeepSeek 适配器默认会附带已启用插件包的名称和版本（可关闭），会话日志增量上传仍为默认关闭。下方各项目标注的 DSH 版本表示其作者实际声明的开发或测试基线，不应自动视为已兼容最新预览版。
+当前核验到的官方 GitHub 开发者预览版为 [`0.1.2-rc.1`](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.2-rc.1)；npm `latest` 仍为 `0.1.1-rc.2`，`next` 已指向 `0.1.2-rc.1`。该 RC 增加完整历史回合导航、精确 Token / 耗时统计、子代理模型选择、ACP 标准控件、定时任务和断线重连，并以可双向继续的 `send_message` 取代单向 `report`。公开 WebFetch 默认启用但有 SSRF 防护；SQLite Session Backend 已移除（旧数据保留，导出需旧版本）；DeepSeek 适配器默认附带已启用插件包名与版本（可关闭），Session 日志增量上传仍为可选且默认关闭。官方同时明示未经安全审计，Sandbox、Approval 与 Permission 不构成完全隔离保证。下方各项目标注的 DSH 版本仅代表作者声明的开发或测试基线，不应自动视为已兼容最新预览版。
 
 ### 启动 Web UI
 
@@ -221,7 +221,7 @@ dsh --profile web --dump-config
 - [dsh-compaction-instant](https://github.com/KitDoesIt/dsh-compaction-instant)：以确定性编译替代 LLM 摘要，并通过 `recall` / `search` 恢复被压缩内容；替换内置压缩器时需要使用 npm alias，属于较深的运行时改造。
 - [toolshrink](https://github.com/unclecode/toolshrink)：按测试、Diff、JSON、目录树、日志和安装输出的结构做内容感知压缩，并在需要时保留原始输出引用；MIT、`0.1.0`，目前需从源码构建并修改全局 `~/.dsh/cordis.patch.yml`，暂存的原始输出会在 24 小时后清理，标注为早期。
 - [dsh-tool-squeeze](https://github.com/w2829562572-dev/dsh-tool-squeeze)：为测试、Diff、JSON、目录树、日志、安装输出和 HTML 提供确定性、本地优先的工具结果压缩；MIT `v0.1.0`，固定兼容 DSH / `dsh-tools` `0.1.0-rc.8`，项目声明 21 项测试及可复现基准。与需源码构建并自行保留原文的 toolshrink 相比，它可直接安装 GitHub Bundle、无需额外模型或网络调用，并将完整原文交给官方 Spill Store；压缩仍有损，且项目为同日初发、无 CI 或独立使用证据，标注为早期。
-- [dsh-whale-report](https://github.com/SenmuuuuW/dsh-whale-report)：从会话事件日志只读生成日报、周报、月报、年报和自定义区间报告；MIT、`v0.5.0`、Node.js 22.19+ 或 24+，Peer 依赖要求 DSH `>=0.1.1-rc.2 <0.2.0`。本版增加确定性的 TRACE → DIAGNOSE → IMPROVE 建议、损坏会话隔离与截断日志只读恢复，统一 Token / 峰谷成本口径、Provider 对账和深色模式；不改写会话历史，也不额外调用 LLM。Release 说明自报 226 项测试通过，但 Release Commit 的 CI 实际在 Unit tests 失败并跳过 Build，故仍标注为早期。
+- [dsh-whale-report](https://github.com/SenmuuuuW/dsh-whale-report)：从会话事件日志生成日报、周报、月报、年报和自定义区间报告；MIT、Release / npm `0.6.1`、Node.js `^22.19 || >=24`，Peer 依赖要求 DSH `>=0.1.1-rc.2 <0.2.0`。`0.6.0` 加入首个严格白名单的 Apply & Verify 操作：仅在重复 Bash 超时证据与用户明确批准后，可将 `shell.timeoutMs` 从 60 秒调为 120 秒并验证、审计和安全回滚；不支持任意设置、任意命令、自动修复或自动回滚。当前 Release Commit 的 CI 通过，说明包含 393 项测试与真实包验收；`0.6.1` 修正历史计价生效日期、启动后新会话与恢复会话的统计，可实质改变历史 Token / 成本总额，但未改变 Apply & Verify 边界。项目仍新且已具备受控配置写入能力，故标注为早期。
 
 ### 浏览器、视觉与界面
 
@@ -273,7 +273,7 @@ dsh --profile web --dump-config
 - [dsh-lark-bot](https://github.com/PlutoKeating/dsh-lark-bot)：把本地 DSH 接入飞书 / Lark，提供流式卡片、工作区、会话恢复与审批；采用 AGPL-3.0，应用凭据以权限 `600` 的明文配置保存在本机。
 - [dsh-lark](https://github.com/sugarforever/dsh-lark)：使用飞书官方 Node SDK 和 WebSocket 长连接把 DSH 接入飞书 / Lark，无需公网回调；MIT、npm / GitHub `v0.1.1`。默认只申请三项消息权限，凭据从环境变量读取；实际运行会接收并以机器人身份发送外部消息。
 - [dsh-qqbot](https://github.com/tencent-connect/dsh-qqbot)：腾讯团队维护的 QQ Bot 插件，支持扫码绑定、私聊与群聊会话隔离及重启恢复；MIT、`0.1.0`，绑定过程会把凭据保存到本地 Profile。
-- [dsh-im](https://github.com/xmanrui/dsh-im)：在一个 DSH Bundle 中统一管理飞书、微信、钉钉、企业微信、QQ、Slack、Telegram、Discord、WhatsApp 与 AI Office，支持多机器人、流式回复、工作区 / 会话绑定和远程审批。MIT、npm / Release `3.0.1`、Node.js 22.19+，CI 与发布包校验通过；九个渠道继续共用文件 / 图片交付、入站暂存、路径保护、回执和清理。`3.0.0` 把“IM 机器人”移到一级设置菜单并移除旧二级入口，升级后需重启 `dsh web`；`3.0.1` 修复 QQ 私聊最终 Markdown 在部分客户端确认却不显示的问题，长回答会安全拆分代码块与 GFM 表格，只在明确拒绝 Markdown 后逐段回退纯文本。Discord 仍需 Message Content Intent、Thread / Message / History 权限，文件还需 Attach Files；WhatsApp 默认仅自聊。Secret / Token 只提交本机 Host，管理 RPC 默认仅回环，但获准聊天用户仍可触发模型和工具，工作区 / 会话列表也可能暴露本机路径与敏感元数据，只应向可信用户开放。
+- [dsh-im](https://github.com/xmanrui/dsh-im)：在一个 DSH Bundle 中统一管理飞书、微信、钉钉、企业微信、QQ、Slack、Telegram、Discord、WhatsApp 与 AI Office，支持多机器人、流式回复、工作区 / 会话绑定和远程审批。MIT、npm / Release `4.9.0`、Node.js 22.19+，Release Commit 的 CI 通过。新版为九个渠道增加工作区别名，长时间等待改为随活动续期，引用上下文会去除内部 ID 和无关元数据；飞书审批和单选问题默认使用绑定操作者的交互卡片，拒绝过期卡片并支持纯文本回退，可用 `DSH_IM_INTERACTION_CARDS=0` 关闭。Discord 仍需 Message Content Intent、Thread / Message / History 权限，文件还需 Attach Files；WhatsApp 默认仅自聊。Secret / Token 只提交本机 Host，管理 RPC 默认仅回环，但获准聊天用户仍可触发模型和工具，工作区 / 会话列表也可能暴露本机路径与敏感元数据，只应向可信用户开放。
 - [LoongSuite DSH Plugin](https://github.com/loongsuite/dsh-plugin)：把 Agent Turn、模型调用、工具执行和 Token 使用转成 OpenTelemetry GenAI Trace，可发送到 Jaeger、Tempo、SigNoz、Langfuse 等 OTLP 后端；Apache-2.0、Beta，已在 DSH `0.1.0-rc.6` 的 Headless 与 Web Profile 验证。内容采集默认关闭，启用后可能外发源码、凭据和个人数据。
 - [Tencent Cloud Agent Observability for DSH](https://github.com/TencentCloud/tencentcloud-agentobs-sdk-dsh)：腾讯云团队维护的 CLS 直传可观测插件，无需 OTLP Collector，把 Session、Agent Loop、模型流和工具生命周期映射为五层 Trace；Apache-2.0、npm / Release `0.0.1`，支持 DSH `>=0.1.0-rc.6 <0.2.0`，项目很新，标注为早期。默认会把 Prompt、Response 和工具参数/结果发送到 CLS，处理敏感仓库前应关闭 `captureContent` 并配置最小权限与保留策略。
 - [Token Monitor](https://github.com/Javis603/token-monitor)：本地优先的跨平台桌面用量工具；当前 Release 为 `v0.47.0`，DSH 的 JSONL / Zstandard 会话读取与按回合 Token、Prompt、工具记录展示自 `v0.46.0` 加入。MIT，macOS 包已签名公证、Windows 包已签名，含 DSH 解析测试与持续集成；默认不向维护者发送遥测，可选多设备同步会向操作者指定的 Hub 发送汇总用量和账号 / 项目元数据，但不发送原始 Prompt、源码或凭据。
@@ -283,6 +283,7 @@ dsh --profile web --dump-config
 
 - [dsh-plugin-check](https://github.com/omdsh-dev/dsh-plugin-check)：检查 Manifest、Patch、构建陷阱和目录收录状态。
 - [DShScan](https://github.com/shaoshi20/dshscan)：为 DSH 插件生成规则证据、风险分和安装建议，可离线扫描本地内容，也可显式联网抓取 GitHub / npm 源码、调用 `npm audit` 或外部 LLM；MIT、npm / Release `0.5.0`，CI 和测试已覆盖 DSH 特有规则，但仍固定兼容 DSH `0.1.0-rc.6` 且项目迭代很快，标注为早期。低风险结论不等于安全审计。
+- [DSH Plugin Upgrade Skill](https://github.com/oh-my-dsh/dsh-plugin-upgrade-skill)：为 DSH 插件升级、迁移、编写、测试、发布、审计和运行时调试提供 8 个 Skills，收录截至 `0.1.2-alpha.4` 的 45 张迁移卡与 12 组通用策略，并用 29 个 Harbor 任务和多组有 / 无 Skill 对照验证。MIT，可通过 `npx skills add oh-my-dsh/dsh-plugin-upgrade-skill` 安装，当前验证 CI 通过。统一入口会先建议只读健康检查并分阶段请求确认，但具体工作流可修改源码、安装依赖、运行测试 / Docker、打包乃至发布，必须在对应授权下使用。项目创建于 2026 年 8 月 30 日，尚无 Release，迁移卡也尚未覆盖当前 `0.1.2-rc.1`，故标注为早期。
 - [DSH Harbor](https://github.com/ZSeven-W/dsh-harbor)：为已安装插件生成声明与源码检出的 13 类能力账本、`file:line` 证据、运行时工具 / Provider / 路由归属、同 Profile 冲突、跨 Profile 版本漂移与变更快照；MIT、npm `next` / Git Tag `0.1.0-rc.2`，已在 DSH `0.1.1-rc.2` 验证，Node 20 / 24、Ubuntu / Windows CI 与真实打包烟测通过。默认扫描离线只读；快照写入 `~/.config/dsh-harbor/`，只有显式上游检查会读取 npm Registry 配置并联网，错误会脱敏凭据。它不是沙箱、安装门禁或策略引擎，且仍为预发布、无 GitHub Release 或独立使用证据，因此标注为早期。
 - [HOL Guard for DSH](https://github.com/hashgraph-online/hol-guard-plugin)：在 DSH 的异步 `tools/pre-execute` 与最终单调 Guard 两层对工具调用做 fail-closed 本地策略检查，把模糊决策交给一次性原生审批，并保留安全回执；Apache-2.0、Release `v0.3.0`、Node.js 20+，另需安装 `hol-guard >=2.0.1024`。仓库含 14 个测试文件，CI 还用固定的官方 DSH `0.1.0-rc.5` 源码跑真实 Headless 阻断测试；默认无需云账号，Cloud 同步为可选。安装会修改所选 Profile，策略可阻止工具执行并在本地 Approval Center 等待决定；保护范围仅覆盖经过 DSH `ToolRuntime` 的调用，不约束插件在该管线之外自行执行的代码。由于尚未证明兼容当前官方 `0.1.1-rc.2`，且最新运行时版本同步 Workflow 失败，标注为早期。
 - [dsh-fail-logger](https://github.com/Areium/dsh-fail-logger)：脱敏、去重并分类记录工具失败，将机器维护的实录沉淀进 Skill；只记录问题，不自动修改行为。
